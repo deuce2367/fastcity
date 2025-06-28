@@ -1,0 +1,12 @@
+fastapi
+sqlalchemy
+uvicorn
+prometheus_client
+pylint
+black
+pyyaml
+rich
+python-json-logger
+pymongo
+geopandas
+scipy
