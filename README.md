@@ -1,6 +1,6 @@
 # 🌍 Nearest City Lookup API (FastAPI + GeoPandas)
 
-This project runs a FastAPI service that efficiently finds the nearest city to a given coordinate using a KD-tree built from a GeoJSON dataset of cities.
+This project runs a FastAPI service that efficiently finds the nearest k cities to a given coordinate using a KD-tree built from a GeoJSON dataset of cities.
 
 ---
 
@@ -38,47 +38,54 @@ curl "http://localhost:8080/nearest_city?lat=23.81&lon=90.41" | jq
 
 ```json
 {
-  "city": {
-    "scalerank": 6,
-    "natscale": 30,
-    "labelrank": 2,
-    "featurecla": "Populated place",
-    "name": "Vilyuysk",
-    "namepar": "",
-    "namealt": "",
-    "nameascii": "Vilyuysk",
-    "adm0cap": 0,
-    "capalt": 0,
-    "capin": "",
-    "worldcity": 0,
-    "megacity": 0,
-    "sov0name": "Russia",
-    "sov_a3": "RUS",
-    "adm0name": "Russia",
-    "adm0_a3": "RUS",
-    "adm1name": "Sakha (Yakutia)",
-    "iso_a2": "RU",
-    "note": "",
-    "latitude": 63.755267,
-    "longitude": 121.624762,
-    "pop_max": 9948,
-    "pop_min": 1139,
-    "pop_other": 451,
-    "rank_max": 5,
-    "rank_min": 3,
-    "meganame": "",
-    "ls_name": "Vilyuysk",
-    "min_zoom": 6,
-    "ne_id": 1159146727,
-    "x": 121.624762,
-    "y": 63.755267
-  },
-  "distance_nm": 73.8647392192252
+  "cities": [
+    {
+      "city": {
+        "scalerank": 3,
+        "natscale": 110,
+        "labelrank": 6.0,
+        "featurecla": "Populated place",
+        "name": "Nacala",
+        "namepar": "",
+        "namealt": "",
+        "nameascii": "Nacala",
+        "adm0cap": 0,
+        "capalt": 0,
+        "capin": "",
+        "worldcity": 0,
+        "megacity": 0,
+        "sov0name": "Mozambique",
+        "sov_a3": "MOZ",
+        "adm0name": "Mozambique",
+        "adm0_a3": "MOZ",
+        "adm1name": "Nampula",
+        "iso_a2": "MZ",
+        "note": "",
+        "latitude": -14.518611,
+        "longitude": 40.715024,
+        "pop_max": 224795,
+        "pop_min": 199630,
+        "pop_other": 195024.0,
+        "rank_max": 10,
+        "rank_min": 9,
+        "meganame": "",
+        "ls_name": "Nacala",
+        "min_zoom": 5.0,
+        "ne_id": 1159150657,
+        "lon": 40.715024,
+        "lat": -14.518611
+      },
+      "distance_nm": 46.37142577025217,
+      "heading": 157.38,
+      "compass": "SE"
+    }
+  ]
 }
-
 ```
 
-> `distance_nm` is the straight-line distance (in nautical miles) to the city.
+> `distance_nm` is the straight-line distance (in nautical miles) to the city
+> `heading` is the great circle heading from the point to the city
+> `compass` is the compass heading (human-friendly)
 
 ---
 

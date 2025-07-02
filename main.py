@@ -1,75 +1,139 @@
-from fastapi import FastAPI, Query, HTTPException
-from fastapi import Request
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from fastapi import FastAPI, Query, HTTPException, Request
+from pydantic import BaseModel, Field
 import geopandas as gpd
 from shapely.geometry import Point
 from scipy.spatial import cKDTree
 import numpy as np
+import math
 from contextlib import asynccontextmanager
+from typing import List
 
-class CityResponse(BaseModel):
+# ---------------------------------------------------------------------------
+# Utility helpers
+# ---------------------------------------------------------------------------
+def initial_bearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Returns the initial great-circle bearing (degrees, 0 to 360) from (lat1, lon1)
+    to (lat2, lon2).
+    """
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_lambda = math.radians(lon2 - lon1)
+
+    x = math.sin(delta_lambda) * math.cos(phi2)
+    y = math.cos(phi1) * math.sin(phi2) - \
+        math.sin(phi1) * math.cos(phi2) * math.cos(delta_lambda)
+
+    theta = math.degrees(math.atan2(x, y))
+    return (theta + 360) % 360  # Normalize to [0, 360)
+
+def compass_direction_8(bearing_deg: float) -> str:
+    """
+    Converts a bearing to 8-point compass direction (N, NE, E, etc.).
+    """
+    directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+    index = int((bearing_deg + 22.5) // 45) % 8
+    return directions[index]
+
+# ---------------------------------------------------------------------------
+# Pydantic response models
+# ---------------------------------------------------------------------------
+class CityInfo(BaseModel):
     city: dict
     distance_nm: float
+    heading: float
+    compass: str = Field(..., description="Compass direction (8-point)")
 
+class CitiesResponse(BaseModel):
+    cities: List[CityInfo]
+
+# ---------------------------------------------------------------------------
+# FastAPI app & data loading
+# ---------------------------------------------------------------------------
 # EPSG:4087 – World Equidistant Cylindrical, good for distance approximations everywhere
 # EPSG:3857 – Web Mercator (used by web maps), decent approximation but distorts near poles
-metric_crs_epsg = 4087 # Change this to appropriate CRS for your region
+metric_crs_epsg = 4087
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load and prepare city data once during startup
-    cities_gdf = gpd.read_file("cities.geojson").fillna('')
+    # Load and clean city data
+    cities_gdf = gpd.read_file("cities.geojson").fillna("")
+    cities_gdf = cities_gdf[
+        cities_gdf.geometry.notnull() &
+        cities_gdf.geometry.is_valid &
+        (cities_gdf.geometry.type == "Point")
+    ]
 
-    # Drop rows with missing or invalid geometry
-    cities_gdf = cities_gdf[cities_gdf.geometry.notnull() & cities_gdf.geometry.is_valid]
-
-    # Filter only points
-    cities_gdf = cities_gdf[cities_gdf.geometry.type == "Point"]
-
-    # Remove cities with NaN coordinates
-    cities_gdf["x"] = cities_gdf.geometry.x
-    cities_gdf["y"] = cities_gdf.geometry.y
-    cities_gdf = cities_gdf[cities_gdf["x"].notna() & cities_gdf["y"].notna()]
+    cities_gdf["lon"] = cities_gdf.geometry.x
+    cities_gdf["lat"] = cities_gdf.geometry.y
+    cities_gdf = cities_gdf[cities_gdf["lat"].notna() & cities_gdf["lon"].notna()]
 
     if cities_gdf.empty:
         raise RuntimeError("No valid city data found.")
 
+    # Project for distance calculation
     cities_proj = cities_gdf.to_crs(epsg=metric_crs_epsg)
-    coords = np.array([(geom.x, geom.y) for geom in cities_proj.geometry])
+    coords = np.column_stack((cities_proj.geometry.x, cities_proj.geometry.y))
     tree = cKDTree(coords)
 
-    # Store in app state
     app.state.cities_gdf = cities_gdf
     app.state.cities_proj = cities_proj
     app.state.tree = tree
+    yield
 
-    yield  # <-- Lifespan active
+app = FastAPI(
+    title="Nearest City Lookup",
+    description="Finds the nearest city (or cities) and includes distance and direction.",
+    lifespan=lifespan,
+)
 
-    # No teardown needed here, but you could close files/resources
-
-app = FastAPI(title="Nearest City Lookup", lifespan=lifespan)
-
-@app.get("/nearest_city", response_model=CityResponse)
+# ---------------------------------------------------------------------------
+# API endpoint
+# ---------------------------------------------------------------------------
+@app.get("/nearest_city", response_model=CitiesResponse)
 def nearest_city(
     request: Request,
-    lat: float = Query(..., ge=-90.0, le=90.0),
-    lon: float = Query(..., ge=-180.0, le=180.0)
+    lat: float = Query(..., ge=-90.0, le=90.0, description="Latitude of the point"),
+    lon: float = Query(..., ge=-180.0, le=180.0, description="Longitude of the point"),
+    k: int = Query(1, ge=1, description="Number of cities to return"),
+    max_distance_nm: float | None = Query(
+        None, gt=0.0, description="Maximum distance in nautical miles"
+    ),
 ):
-    cities_gdf = request.app.state.cities_gdf
+    cities_wgs = request.app.state.cities_gdf
     cities_proj = request.app.state.cities_proj
     tree = request.app.state.tree
 
-    # Project the query point to metric CRS
+    # Convert query point to projected CRS
     point_wgs = gpd.GeoSeries([Point(lon, lat)], crs="EPSG:4326")
-    point_proj = point_wgs.to_crs(epsg=metric_crs_epsg)
-    query_coords = (point_proj.geometry.x.values[0], point_proj.geometry.y.values[0])
+    point_proj = point_wgs.to_crs(epsg=metric_crs_epsg).geometry.iloc[0]
+    query_xy = (point_proj.x, point_proj.y)
 
-    dist, idx = tree.query(query_coords)
-    city = cities_gdf.iloc[idx]
+    # Query k nearest
+    dist_m, idx = tree.query(query_xy, k=min(k, len(cities_wgs)))
+    dist_m = np.atleast_1d(dist_m)
+    idx = np.atleast_1d(idx)
 
-    return CityResponse(
-        city=city.drop('geometry').to_dict(),
-        distance_nm=float(dist)/1852
-    )
+    cities = []
+    for d_m, i in zip(dist_m, idx):
+        dist_nm = float(d_m) / 1852.0
+        if max_distance_nm is not None and dist_nm > max_distance_nm:
+            continue
+
+        city_row = cities_wgs.iloc[i]
+        bearing = initial_bearing(lat, lon, city_row["lat"], city_row["lon"])
+        cities.append(
+            CityInfo(
+                city=city_row.drop(labels=["geometry"]).to_dict(),
+                distance_nm=dist_nm,
+                heading=round(bearing, 2),
+                compass=compass_direction_8(bearing)
+            )
+        )
+
+    if not cities:
+        raise HTTPException(status_code=404, detail="No city found within range.")
+
+    cities.sort(key=lambda r: r.distance_nm)
+    return CitiesResponse(cities=cities)
 
