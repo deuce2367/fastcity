@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastCity - Nearest City Lookup</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div id="app-container">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="glass-panel">
+            <div class="sidebar-header">
+                <i class="ph ph-globe-hemisphere-west"></i>
+                <h1>FastCity</h1>
+            </div>
+            
+            <div class="control-group">
+                <label for="k-input">Number of Cities (k)</label>
+                <div class="range-container">
+                    <input type="range" id="k-input" min="1" max="50" value="5">
+                    <span id="k-value">5</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="unit-select">Distance Unit</label>
+                <select id="unit-select">
+                    <option value="nm">Nautical Miles (nm)</option>
+                    <option value="km" selected>Kilometers (km)</option>
+                    <option value="mi">Miles (mi)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="map-style-select">Map Style</label>
+                <select id="map-style-select">
+                    <option value="osm">OpenStreetMap</option>
+                    <option value="dark" selected>Carto Dark Matter</option>
+                    <option value="light">Carto Positron</option>
+                    <option value="voyager">Carto Voyager</option>
+                    <option value="satellite">Esri World Imagery</option>
+                    <option value="esriTopo">Esri World Topo</option>
+                    <option value="esriNatGeo">Esri NatGeo</option>
+                    <option value="openTopo">OpenTopoMap</option>
+                    <option value="osmHot">OSM Humanitarian</option>
+                    <option value="cyclosm">CyclOSM</option>
+                </select>
+            </div>
+
+            <div class="instruction">
+                <i class="ph ph-hand-tap"></i>
+                <p>Click anywhere on the map to find nearby cities.</p>
+            </div>
+        </aside>
+
+        <!-- Main Map Area -->
+        <main id="map-container">
+            <div id="map"></div>
+            
+            <!-- Floating Coordinates Widget -->
+            <div id="coordinates-widget" class="glass-panel">
+                <i class="ph ph-crosshair"></i>
+                <span id="lat-val">0.0000</span>°, <span id="lon-val">0.0000</span>°
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="glass-panel hidden">
+                <i class="ph ph-spinner ph-spin"></i> Searching...
+            </div>
+        </main>
+        
+        <!-- Results Table (Collapsible) -->
+        <div id="results-panel" class="glass-panel hidden">
+            <div class="results-header">
+                <h2><i class="ph ph-list-dashes"></i> Nearby Cities</h2>
+                <div class="results-actions">
+                    <button id="export-csv" class="export-btn" aria-label="Export to CSV" title="Export to CSV"><i class="ph ph-file-csv"></i> CSV</button>
+                    <button id="export-json" class="export-btn" aria-label="Export to JSON" title="Export to JSON"><i class="ph ph-file-code"></i> JSON</button>
+                    <button id="close-results" aria-label="Close results" title="Close"><i class="ph ph-x"></i></button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="results-table">
+                    <thead>
+                        <tr>
+                            <th data-sort="name" class="sortable">City <i class="ph ph-caret-up hidden sort-icon"></i></th>
+                            <th data-sort="country" class="sortable">Country <i class="ph ph-caret-up hidden sort-icon"></i></th>
+                            <th data-sort="population" class="sortable">Population <i class="ph ph-caret-up hidden sort-icon"></i></th>
+                            <th data-sort="distance" class="sortable">Distance (<span id="table-unit-label">km</span>) <i class="ph ph-caret-up hidden sort-icon"></i></th>
+                            <th data-sort="heading" class="sortable">Heading <i class="ph ph-caret-up hidden sort-icon"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <!-- Custom JS -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

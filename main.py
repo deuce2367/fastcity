@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Query, HTTPException, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 import geopandas as gpd
 from shapely.geometry import Point
@@ -86,6 +88,12 @@ app = FastAPI(
     description="Finds the nearest city (or cities) and includes distance and direction.",
     lifespan=lifespan,
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+def read_root():
+    return FileResponse("static/index.html")
 
 # ---------------------------------------------------------------------------
 # API endpoint

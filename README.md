@@ -89,6 +89,19 @@ curl "http://localhost:8080/nearest_city?lat=23.81&lon=90.41" | jq
 
 ---
 
+## 🗺️ Web Interface
+
+FastCity includes a polished, interactive web map interface available at the root URL (`/`). 
+
+### Features:
+- **Interactive Map**: Built with Leaflet, click anywhere to search for nearby cities.
+- **Multiple Basemaps**: Choose from OpenStreetMap, Carto Dark/Light, Carto Voyager, Esri Satellite/Topo/NatGeo, OpenTopoMap, OSM Humanitarian, and CyclOSM.
+- **Dynamic Controls**: Adjust the number of results ($k$) and switch distance units between Nautical Miles, Kilometers, and Miles.
+- **Sortable Results**: View results in a table and click headers to sort dynamically.
+- **Export**: Export your search results to CSV or JSON formats with the click of a button.
+
+---
+
 ## 🗺️ Requirements
 
 The city data should be provided in a valid `cities.geojson` file with point geometries. The server projects coordinates to a global metric CRS (e.g., EPSG:4087) for accurate spatial indexing.
