@@ -58,14 +58,15 @@ closeResultsBtn.addEventListener('click', () => {
 
 // Track mouse coordinates over map
 map.on('mousemove', (e) => {
-    latVal.textContent = e.latlng.lat.toFixed(4);
-    lonVal.textContent = e.latlng.lng.toFixed(4);
+    const wrapped = e.latlng.wrap();
+    latVal.textContent = wrapped.lat.toFixed(4);
+    lonVal.textContent = wrapped.lng.toFixed(4);
 });
 
 // Handle map click
 map.on('click', (e) => {
-    const { lat, lng } = e.latlng;
-    fetchNearestCities(lat, lng);
+    const wrapped = e.latlng.wrap();
+    fetchNearestCities(wrapped.lat, wrapped.lng);
 });
 
 // Sorting logic
