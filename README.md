@@ -95,10 +95,46 @@ FastCity includes a polished, interactive web map interface available at the roo
 
 ### Features:
 - **Interactive Map**: Built with Leaflet, click anywhere to search for nearby cities.
-- **Multiple Basemaps**: Choose from OpenStreetMap, Carto Dark/Light, Carto Voyager, Esri Satellite/Topo/NatGeo, OpenTopoMap, OSM Humanitarian, and CyclOSM.
+- **Multiple Basemaps**: Dynamically configurable map selection including standard Tile maps and WMS overlays (e.g., Google Maps, Esri Imagery, NOAA Radar, OpenStreetMap).
 - **Dynamic Controls**: Adjust the number of results ($k$) and switch distance units between Nautical Miles, Kilometers, and Miles.
 - **Sortable Results**: View results in a table and click headers to sort dynamically.
 - **Export**: Export your search results to CSV or JSON formats with the click of a button.
+
+### 🛠️ Map Configuration
+
+The available basemaps and overlays are entirely controlled by the `config.yaml` file located in the project root. You can easily modify, remove, or add new maps without touching any code.
+
+**How to add or modify a map:**
+1. Open `config.yaml`
+2. Add a new entry to the `maps` array.
+3. Specify the `id`, `name`, `type` (`tile` or `wms`), and `url`.
+4. Include any necessary `options` (like `maxZoom`, `attribution`, `layers`, `transparent`).
+
+**Example Tile Map:**
+```yaml
+- id: google_maps
+  name: Google Maps
+  type: tile
+  url: https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}
+  options:
+    maxZoom: 20
+    attribution: '&copy; Google'
+```
+
+**Example WMS Overlay:**
+```yaml
+- id: noaa_nexrad
+  name: NOAA NEXRAD Radar
+  type: wms
+  url: https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi
+  options:
+    layers: nexrad-n0r-900913
+    format: image/png
+    transparent: true
+    attribution: Weather data &copy; IEM Nexrad
+```
+
+*Note: If a WMS layer is marked as `transparent: true`, the application will automatically render a solid basemap (like Esri Topo) underneath it so that the transparent overlay has a visible background.*
 
 ---
 
