@@ -116,6 +116,11 @@ def get_config():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.get("/.well-known/appspecific/com.chrome.devtools.json", include_in_schema=False)
+def chrome_devtools():
+    return {}
+
 @app.get("/")
 def read_root():
     return FileResponse("static/index.html")
