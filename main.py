@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query, HTTPException, Request
+from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
@@ -88,9 +89,22 @@ app = FastAPI(
     title="Nearest City Lookup",
     description="Finds the nearest city (or cities) and includes distance and direction.",
     lifespan=lifespan,
+    docs_url=None,
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - Swagger UI",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_js_url="/static/vendor/swagger/swagger-ui-bundle.js",
+        swagger_css_url="/static/vendor/swagger/swagger-ui.css",
+        swagger_favicon_url="/static/vendor/swagger/favicon-32x32.png",
+    )
+
 
 
 @app.get("/config")

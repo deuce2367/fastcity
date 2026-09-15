@@ -1,4 +1,5 @@
 default_unit: nm
+default_k: 10
 default_map: osm
 maps:
 - id: osm
@@ -104,3 +105,20 @@ maps:
     format: image/png
     transparent: true
     attribution: Weather data &copy; IEM Nexrad
+styling:
+  markers:
+    click:
+      fillColor: '#ef4444'
+      color: '#ffffff'
+      radius: 8
+    city:
+      fillColor: '#3b82f6'
+      color: '#ffffff'
+      radius: 6
+  lines:
+    halo:
+      color: '#ffffff'
+      weight: 3
+    dash:
+      color: '#1e40af'
+      weight: 1

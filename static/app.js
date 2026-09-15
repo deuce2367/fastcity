@@ -154,6 +154,18 @@ async function loadConfig() {
             mapStyleOptions.appendChild(opt);
         });
         
+        // Set defaults from config
+        if (config.default_k) {
+            kInput.value = config.default_k;
+            kValue.textContent = config.default_k;
+        }
+        if (config.default_unit) {
+            unitSelect.value = config.default_unit;
+            if (config.default_unit === 'km') tableUnitLabel.textContent = 'km';
+            else if (config.default_unit === 'mi') tableUnitLabel.textContent = 'mi';
+            else tableUnitLabel.textContent = 'nm';
+        }
+
         // Set default
         const defaultMap = config.maps.find(m => m.id === config.default_map) || config.maps[0];
         setMapLayer(defaultMap.id);
@@ -265,17 +277,52 @@ function updateMapElements(clickLat, clickLng, cities) {
     cityMarkers = [];
     connectionLines = [];
     
+    // Get styles from config with fallbacks
+    const s = mapConfig.styling || {};
+    const sm = s.markers || {};
+    const sl = s.lines || {};
+    
+    const clickStyle = sm.click || { fillColor: "#ef4444", color: "#fff", radius: 9 };
+    const cityStyle = sm.city || { fillColor: "#3b82f6", color: "#fff", radius: 8 };
+    const haloStyle = sl.halo || { color: "#ffffff", weight: 5 };
+    const dashStyle = sl.dash || { color: "#1e40af", weight: 2 };
+    
+    // Draw lines FIRST so they appear underneath markers
+    cities.forEach(item => {
+        const city = item.city;
+        
+        // Draw a solid white halo/casing
+        const bgLine = L.polyline([[clickLat, clickLng], [city.lat, city.lon]], {
+            color: haloStyle.color,
+            weight: haloStyle.weight,
+            opacity: 0.8,
+            interactive: false
+        }).addTo(map);
+        connectionLines.push(bgLine);
+
+        // Draw the inner dashed line
+        const line = L.polyline([[clickLat, clickLng], [city.lat, city.lon]], {
+            color: dashStyle.color, 
+            weight: dashStyle.weight,
+            dashArray: '6, 6',
+            opacity: 1,
+            interactive: false
+        }).addTo(map);
+        
+        connectionLines.push(line);
+    });
+
     // Add click marker
     clickMarker = L.circleMarker([clickLat, clickLng], {
-        radius: 6,
-        fillColor: "#ef4444", // Red
-        color: "#fff",
+        radius: clickStyle.radius,
+        fillColor: clickStyle.fillColor,
+        color: clickStyle.color,
         weight: 2,
         opacity: 1,
         fillOpacity: 1
     }).addTo(map);
     
-    // Add city markers and lines
+    // Add city markers
     cities.forEach(item => {
         const city = item.city;
         
@@ -287,28 +334,19 @@ function updateMapElements(clickLat, clickLng, cities) {
         `;
         
         const marker = L.circleMarker([city.lat, city.lon], {
-            radius: 5,
-            fillColor: "#3b82f6", // Blue
-            color: "#fff",
+            radius: cityStyle.radius,
+            fillColor: cityStyle.fillColor,
+            color: cityStyle.color,
             weight: 1.5,
             opacity: 1,
             fillOpacity: 0.8
         }).bindTooltip(tooltipContent).addTo(map);
         
         cityMarkers.push(marker);
-        
-        // Draw line from click to city
-        const line = L.polyline([[clickLat, clickLng], [city.lat, city.lon]], {
-            color: 'rgba(59, 130, 246, 0.4)',
-            weight: 2,
-            dashArray: '5, 5',
-            interactive: false
-        }).addTo(map);
-        
-        connectionLines.push(line);
     });
     
-    // Bring click marker to the very front so it is above the dashed lines
+    // Bring all markers to front
+    cityMarkers.forEach(m => m.bringToFront());
     if (clickMarker) {
         clickMarker.bringToFront();
     }

@@ -6,13 +6,11 @@
     <title>FastCity - Nearest City Lookup</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <link rel="stylesheet" href="/static/vendor/leaflet.css" />
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/vendor/inter/inter.css">
     <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="/static/vendor/phosphor/phosphor.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -24,6 +22,10 @@
                 <i class="ph ph-globe-hemisphere-west"></i>
                 <h1>FastCity</h1>
             </div>
+            <a href="/docs" class="api-link" target="_blank" rel="noopener noreferrer">
+                <i class="ph ph-file-code"></i> API Documentation
+            </a>
+
             
             <div class="control-group">
                 <label for="k-input">Number of Cities</label>
@@ -107,7 +109,7 @@
     </div>
 
     <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="/static/vendor/leaflet.js"></script>
     <!-- Custom JS -->
     <script src="/static/app.js"></script>
 </body>
