@@ -1,0 +1,106 @@
+default_unit: nm
+default_map: osm
+maps:
+- id: osm
+  name: OpenStreetMap
+  type: tile
+  url: https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+  options:
+    maxZoom: 19
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+- id: openTopo
+  name: OpenTopoMap
+  type: tile
+  url: https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png
+  options:
+    maxZoom: 17
+    attribution: '&copy; OpenTopoMap'
+- id: osmHot
+  name: OSM Humanitarian
+  type: tile
+  url: https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png
+  options:
+    maxZoom: 19
+    attribution: '&copy; OSM Humanitarian'
+- id: cyclosm
+  name: CyclOSM
+  type: tile
+  url: https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png
+  options:
+    maxZoom: 20
+    attribution: '&copy; CyclOSM'
+- id: terrestris_osm
+  name: Terrestris OSM
+  type: wms
+  url: https://ows.terrestris.de/osm/service
+  options:
+    layers: OSM-WMS
+    format: image/png
+    transparent: false
+    attribution: '&copy; Terrestris / OSM'
+- id: terrestris_topo
+  name: Terrestris Topo
+  type: wms
+  url: https://ows.terrestris.de/osm/service
+  options:
+    layers: TOPO-WMS
+    format: image/png
+    transparent: false
+    attribution: '&copy; Terrestris / OSM'
+- id: esri_imagery
+  name: Esri World Imagery
+  type: tile
+  url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
+  options:
+    maxZoom: 19
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX,
+      GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+- id: esri_street
+  name: Esri World Street Map
+  type: tile
+  url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}
+  options:
+    maxZoom: 19
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap,
+      iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom,
+      2012'
+- id: esri_topo
+  name: Esri World Topo
+  type: tile
+  url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+  options:
+    maxZoom: 19
+    attribution: Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap,
+      iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan,
+      METI, Esri China (Hong Kong), and the GIS User Community
+- id: esri_natgeo
+  name: Esri NatGeo
+  type: tile
+  url: https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}
+  options:
+    maxZoom: 16
+    attribution: Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ,
+      UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC
+- id: google_maps
+  name: Google Maps
+  type: tile
+  url: https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}
+  options:
+    maxZoom: 20
+    attribution: '&copy; Google'
+- id: google_satellite
+  name: Google Satellite
+  type: tile
+  url: https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}
+  options:
+    maxZoom: 20
+    attribution: '&copy; Google'
+- id: noaa_nexrad
+  name: NOAA NEXRAD Radar
+  type: wms
+  url: https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi
+  options:
+    layers: nexrad-n0r-900913
+    format: image/png
+    transparent: true
+    attribution: Weather data &copy; IEM Nexrad

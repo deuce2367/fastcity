@@ -1,52 +1,12 @@
 // --- Map Providers ---
-const mapProviders = {
-    osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-    }),
-    dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 20,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    }),
-    light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 20,
-        attribution: '&copy; OSM &copy; CARTO'
-    }),
-    voyager: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 20,
-        attribution: '&copy; OSM &copy; CARTO'
-    }),
-    satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        attribution: 'Tiles &copy; Esri'
-    }),
-    esriTopo: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        attribution: 'Tiles &copy; Esri'
-    }),
-    esriNatGeo: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 16,
-        attribution: 'Tiles &copy; Esri'
-    }),
-    openTopo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-        maxZoom: 17,
-        attribution: '&copy; OpenTopoMap'
-    }),
-    osmHot: L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OSM Humanitarian'
-    }),
-    cyclosm: L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
-        maxZoom: 20,
-        attribution: '&copy; CyclOSM'
-    })
-};
+let mapProviders = {};
+let currentActiveLayers = [];
+let mapConfig = null;
 
 // --- Initialization ---
 const map = L.map('map', {
     center: [20, 0], // Initial center
-    zoom: 3,
-    layers: [mapProviders.dark] // Default layer
+    zoom: 3
 });
 
 // Variables to store current state
@@ -59,7 +19,8 @@ let currentData = [];
 const kInput = document.getElementById('k-input');
 const kValue = document.getElementById('k-value');
 const unitSelect = document.getElementById('unit-select');
-const mapStyleSelect = document.getElementById('map-style-select');
+const mapStyleSelected = document.getElementById('map-style-selected');
+const mapStyleOptions = document.getElementById('map-style-options');
 const latVal = document.getElementById('lat-val');
 const lonVal = document.getElementById('lon-val');
 const loadingIndicator = document.getElementById('loading');
@@ -75,14 +36,7 @@ kInput.addEventListener('input', (e) => {
     kValue.textContent = e.target.value;
 });
 
-// Update map style
-mapStyleSelect.addEventListener('change', (e) => {
-    const selectedStyle = e.target.value;
-    // Remove all current layers
-    Object.values(mapProviders).forEach(layer => map.removeLayer(layer));
-    // Add selected layer
-    map.addLayer(mapProviders[selectedStyle]);
-});
+
 
 // Update distance unit label in table
 unitSelect.addEventListener('change', (e) => {
@@ -157,6 +111,102 @@ document.querySelectorAll('th.sortable').forEach(th => {
         updateResultsTable(currentData);
     });
 });
+
+
+// --- Config Fetching ---
+async function loadConfig() {
+    try {
+        const res = await fetch('/config');
+        const config = await res.json();
+        mapConfig = config;
+        
+        // Build mapProviders
+        config.maps.forEach(m => {
+            if (m.type === 'tile') {
+                mapProviders[m.id] = L.tileLayer(m.url, m.options);
+            } else if (m.type === 'wms') {
+                mapProviders[m.id] = L.tileLayer.wms(m.url, m.options);
+            }
+        });
+        
+        // Populate custom dropdown
+        mapStyleOptions.innerHTML = '';
+        config.maps.forEach(m => {
+            const opt = document.createElement('div');
+            opt.className = 'custom-option';
+            opt.dataset.value = m.id;
+            
+            // Icon based on type
+            const icon = m.type === 'wms' ? '<i class="ph ph-globe"></i>' : '<i class="ph ph-map-trifold"></i>';
+            opt.innerHTML = `${icon} <span>${m.name}</span>`;
+            
+            opt.addEventListener('click', () => {
+                setMapLayer(m.id);
+                mapStyleSelected.innerHTML = `${icon} <span>${m.name}</span> <i class="ph ph-caret-down"></i>`;
+                mapStyleOptions.classList.add('hidden');
+                
+                // Highlight selected
+                document.querySelectorAll('.custom-option').forEach(el => el.classList.remove('selected'));
+                opt.classList.add('selected');
+            });
+            
+            mapStyleOptions.appendChild(opt);
+        });
+        
+        // Set default
+        const defaultMap = config.maps.find(m => m.id === config.default_map) || config.maps[0];
+        setMapLayer(defaultMap.id);
+        const icon = defaultMap.type === 'wms' ? '<i class="ph ph-globe"></i>' : '<i class="ph ph-map-trifold"></i>';
+        mapStyleSelected.innerHTML = `${icon} <span>${defaultMap.name}</span> <i class="ph ph-caret-down"></i>`;
+        
+        // Mark default selected
+        const defaultOpt = Array.from(mapStyleOptions.children).find(el => el.dataset.value === defaultMap.id);
+        if (defaultOpt) defaultOpt.classList.add('selected');
+        
+    } catch(err) {
+        console.error("Failed to load config", err);
+    }
+}
+
+function setMapLayer(id) {
+    // Clear existing layers
+    currentActiveLayers.forEach(layer => map.removeLayer(layer));
+    currentActiveLayers = [];
+    
+    const selectedConfig = mapConfig.maps.find(m => m.id === id);
+    
+    // If the selected map is a transparent overlay, add a base map underneath
+    if (selectedConfig && selectedConfig.options && selectedConfig.options.transparent) {
+        const baseId = 'esri_topo'; // A nice default basemap for weather
+        if (mapProviders[baseId]) {
+            const baseLayer = mapProviders[baseId];
+            baseLayer.addTo(map);
+            currentActiveLayers.push(baseLayer);
+        }
+    }
+    
+    const mainLayer = mapProviders[id];
+    mainLayer.addTo(map);
+    currentActiveLayers.push(mainLayer);
+    
+    // Bring transparent overlay to front
+    if (currentActiveLayers.length > 1 && typeof mainLayer.bringToFront === 'function') {
+        mainLayer.bringToFront();
+    }
+}
+
+// Toggle dropdown
+mapStyleSelected.addEventListener('click', () => {
+    mapStyleOptions.classList.toggle('hidden');
+});
+document.addEventListener('click', (e) => {
+    if (!mapStyleSelected.contains(e.target) && !mapStyleOptions.contains(e.target)) {
+        mapStyleOptions.classList.add('hidden');
+    }
+});
+
+// Call on load
+loadConfig();
 
 // --- Main Logic ---
 
@@ -250,7 +300,8 @@ function updateMapElements(clickLat, clickLng, cities) {
         const line = L.polyline([[clickLat, clickLng], [city.lat, city.lon]], {
             color: 'rgba(59, 130, 246, 0.4)',
             weight: 2,
-            dashArray: '5, 5'
+            dashArray: '5, 5',
+            interactive: false
         }).addTo(map);
         
         connectionLines.push(line);

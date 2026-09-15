@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FastCity - Nearest City Lookup</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <!-- Google Fonts -->
@@ -25,7 +26,7 @@
             </div>
             
             <div class="control-group">
-                <label for="k-input">Number of Cities (k)</label>
+                <label for="k-input">Number of Cities</label>
                 <div class="range-container">
                     <input type="range" id="k-input" min="1" max="50" value="5">
                     <span id="k-value">5</span>
@@ -35,26 +36,23 @@
             <div class="control-group">
                 <label for="unit-select">Distance Unit</label>
                 <select id="unit-select">
-                    <option value="nm">Nautical Miles (nm)</option>
-                    <option value="km" selected>Kilometers (km)</option>
+                    <option value="nm" selected>Nautical Miles (nm)</option>
+                    <option value="km">Kilometers (km)</option>
                     <option value="mi">Miles (mi)</option>
                 </select>
             </div>
 
             <div class="control-group">
                 <label for="map-style-select">Map Style</label>
-                <select id="map-style-select">
-                    <option value="osm">OpenStreetMap</option>
-                    <option value="dark" selected>Carto Dark Matter</option>
-                    <option value="light">Carto Positron</option>
-                    <option value="voyager">Carto Voyager</option>
-                    <option value="satellite">Esri World Imagery</option>
-                    <option value="esriTopo">Esri World Topo</option>
-                    <option value="esriNatGeo">Esri NatGeo</option>
-                    <option value="openTopo">OpenTopoMap</option>
-                    <option value="osmHot">OSM Humanitarian</option>
-                    <option value="cyclosm">CyclOSM</option>
-                </select>
+                <div class="custom-select-wrapper">
+                    <div class="custom-select" id="map-style-selected">
+                        <span>Loading...</span>
+                        <i class="ph ph-caret-down"></i>
+                    </div>
+                    <div class="custom-options hidden" id="map-style-options">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
             </div>
 
             <div class="instruction">
@@ -96,7 +94,7 @@
                             <th data-sort="name" class="sortable">City <i class="ph ph-caret-up hidden sort-icon"></i></th>
                             <th data-sort="country" class="sortable">Country <i class="ph ph-caret-up hidden sort-icon"></i></th>
                             <th data-sort="population" class="sortable">Population <i class="ph ph-caret-up hidden sort-icon"></i></th>
-                            <th data-sort="distance" class="sortable">Distance (<span id="table-unit-label">km</span>) <i class="ph ph-caret-up hidden sort-icon"></i></th>
+                            <th data-sort="distance" class="sortable">Distance (<span id="table-unit-label">nm</span>) <i class="ph ph-caret-up hidden sort-icon"></i></th>
                             <th data-sort="heading" class="sortable">Heading <i class="ph ph-caret-up hidden sort-icon"></i></th>
                         </tr>
                     </thead>

@@ -431,3 +431,63 @@ tbody tr:hover {
 .leaflet-control-attribution a {
     color: var(--accent-color) !important;
 }
+
+/* Custom Select Dropdown */
+.custom-select-wrapper {
+    position: relative;
+    user-select: none;
+    width: 100%;
+}
+.custom-select {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--panel-border);
+    color: var(--text-primary);
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.custom-select:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.custom-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-color);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    margin-top: 4px;
+    z-index: 2000;
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.custom-options.hidden {
+    display: none;
+}
+.custom-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 14px;
+}
+.custom-option:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.custom-option i {
+    font-size: 16px;
+    color: var(--accent-color);
+}
+.custom-option.selected {
+    background-color: rgba(59, 130, 246, 0.2);
+}
+

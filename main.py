@@ -9,6 +9,7 @@ import numpy as np
 import math
 from contextlib import asynccontextmanager
 from typing import List
+import yaml
 
 # ---------------------------------------------------------------------------
 # Utility helpers
@@ -90,6 +91,16 @@ app = FastAPI(
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/config")
+def get_config():
+    try:
+        with open("config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+        return config
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 def read_root():
