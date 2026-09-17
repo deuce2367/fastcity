@@ -36,6 +36,14 @@ kInput.addEventListener('input', (e) => {
     kValue.textContent = e.target.value;
 });
 
+// Update data when slider is released (change event)
+kInput.addEventListener('change', () => {
+    if (clickMarker) {
+        const wrapped = clickMarker.getLatLng().wrap();
+        fetchNearestCities(wrapped.lat, wrapped.lng);
+    }
+});
+
 
 
 // Update distance unit label in table
@@ -342,7 +350,19 @@ function updateMapElements(clickLat, clickLng, cities) {
             fillOpacity: 0.8
         }).bindTooltip(tooltipContent).addTo(map);
         
+        // Link the marker back to the data item for hover effects
+        item.marker = marker;
         cityMarkers.push(marker);
+        
+        // Add hover effects for the marker itself
+        marker.on('mouseover', () => {
+            const hoverStyle = sm.hover || { fillColor: '#facc15', color: '#000000', weight: 2 };
+            marker.setStyle(hoverStyle);
+            marker.bringToFront();
+        });
+        marker.on('mouseout', () => {
+            marker.setStyle({ fillColor: cityStyle.fillColor, color: cityStyle.color, weight: 1.5 });
+        });
     });
     
     // Bring all markers to front
@@ -382,6 +402,28 @@ function updateResultsTable(cities) {
         tr.style.cursor = 'pointer';
         tr.addEventListener('click', () => {
             map.panTo([city.lat, city.lon]);
+        });
+        
+        // Add hover effects for the marker
+        tr.addEventListener('mouseenter', () => {
+            if (item.marker) {
+                const s = mapConfig.styling || {};
+                const sm = s.markers || {};
+                const hoverStyle = sm.hover || { fillColor: '#facc15', color: '#000000', weight: 2 };
+                item.marker.setStyle(hoverStyle);
+                item.marker.bringToFront();
+                item.marker.openTooltip();
+            }
+        });
+        
+        tr.addEventListener('mouseleave', () => {
+            if (item.marker) {
+                const s = mapConfig.styling || {};
+                const sm = s.markers || {};
+                const cityStyle = sm.city || { fillColor: "#3b82f6", color: "#fff", radius: 8 };
+                item.marker.setStyle({ fillColor: cityStyle.fillColor, color: cityStyle.color, weight: 1.5 });
+                item.marker.closeTooltip();
+            }
         });
         
         resultsBody.appendChild(tr);

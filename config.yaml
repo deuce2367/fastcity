@@ -115,6 +115,10 @@ styling:
       fillColor: '#3b82f6'
       color: '#ffffff'
       radius: 6
+    hover:
+      fillColor: '#facc15'
+      color: '#000000'
+      weight: 2
   lines:
     halo:
       color: '#ffffff'
